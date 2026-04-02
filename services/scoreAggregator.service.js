@@ -1,5 +1,5 @@
-const Question = require('../models/Question.model');
-const Report   = require('../models/Report.model');
+const Question = require("../models/Question.model");
+const Report = require("../models/Report.model");
 
 // ---------------------------------------------------------------------------
 // Internal helpers
@@ -11,11 +11,16 @@ const Report   = require('../models/Report.model');
  * @param {object} scores - { technicalScore, depthScore, clarityScore, confidenceScore }
  * @returns {number} 0-100
  */
-function weightedScore({ technicalScore = 0, depthScore = 0, clarityScore = 0, confidenceScore = 0 }) {
+function weightedScore({
+  technicalScore = 0,
+  depthScore = 0,
+  clarityScore = 0,
+  confidenceScore = 0,
+}) {
   return (
-    technicalScore  * 0.4 +
-    depthScore      * 0.2 +
-    clarityScore    * 0.2 +
+    technicalScore * 0.4 +
+    depthScore * 0.2 +
+    clarityScore * 0.2 +
     confidenceScore * 0.2
   );
 }
@@ -36,7 +41,7 @@ function average(nums) {
 // aggregateReport
 // ---------------------------------------------------------------------------
 
-const STAGES = ['intro', 'cv_deep_dive', 'technical', 'problem_solving'];
+const STAGES = ["intro", "cv_deep_dive", "technical", "problem_solving"];
 
 /**
  * Aggregates all scored Question documents for a session into a Report.
@@ -63,23 +68,31 @@ async function aggregateReport(sessionId) {
   // ----- Top strengths: best summaries where technicalScore >= 70 -------- //
   const strengths = questions
     .filter((q) => (q.scores?.technicalScore ?? 0) >= 70 && q.feedback?.summary)
-    .sort((a, b) => (b.scores?.technicalScore ?? 0) - (a.scores?.technicalScore ?? 0))
+    .sort(
+      (a, b) =>
+        (b.scores?.technicalScore ?? 0) - (a.scores?.technicalScore ?? 0),
+    )
     .slice(0, 3)
     .map((q) => q.feedback.summary);
 
   // ----- Top improvements: suggestions where technicalScore < 70 --------- //
   const improvements = questions
-    .filter((q) => (q.scores?.technicalScore ?? 0) < 70 && q.feedback?.suggestion)
-    .sort((a, b) => (a.scores?.technicalScore ?? 0) - (b.scores?.technicalScore ?? 0)) // worst first
+    .filter(
+      (q) => (q.scores?.technicalScore ?? 0) < 70 && q.feedback?.suggestion,
+    )
+    .sort(
+      (a, b) =>
+        (a.scores?.technicalScore ?? 0) - (b.scores?.technicalScore ?? 0),
+    ) // worst first
     .slice(0, 3)
     .map((q) => q.feedback.suggestion);
 
   // ----- Voice metrics placeholder (frontend fills real values) ---------- //
   const voiceMetrics = {
-    avgWPM:          0,
+    avgWPM: 0,
     totalFillerWords: 0,
-    longestPause:    0,
-    answerCount:     questions.length,
+    longestPause: 0,
+    answerCount: questions.length,
   };
 
   // ----- Upsert ---------------------------------------------------------- //
@@ -89,10 +102,10 @@ async function aggregateReport(sessionId) {
       overallScore,
       stageScores,
       voiceMetrics,
-      topStrengths:    strengths,
+      topStrengths: strengths,
       topImprovements: improvements,
     },
-    { upsert: true, new: true, setDefaultsOnInsert: true }
+    { upsert: true, new: true, setDefaultsOnInsert: true },
   );
 
   return report;
