@@ -1,7 +1,6 @@
 const express    = require('express');
 const upload     = require('../middleware/upload');
 const { uploadCV } = require('../controllers/upload.controller');
-const { protect } = require('../middleware/authMiddleware');
 
 const router = express.Router();
 
@@ -11,7 +10,6 @@ const router = express.Router();
  */
 router.post(
   '/',
-  protect,
   (req, res, next) => {
     // Run multer and convert errors into a clean JSON 400 response
     upload.single('cv')(req, res, (err) => {
